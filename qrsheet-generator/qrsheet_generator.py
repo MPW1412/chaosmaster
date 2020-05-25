@@ -33,12 +33,11 @@ class QrSheetGenerator:
         self.__position_rows = offsetRows
         self.__pixel_per_mm = ppi/25.4
 
-        #self.__sheet = Image.new(
-        #        str(1),
-        #        (round(self.__sheetDimensions['sheet_width']*self.__pixel_per_mm),
-        #            round(self.__sheetDimensions['sheet_height']*self.__pixel_per_mm)),
-        #        color=1)
-        self.__sheet = Image.open('/home/mpw/Downloads/20x20_info.png')
+        self.__sheet = Image.new(
+                str(1),
+                (round(self.__sheetDimensions['sheet_width']*self.__pixel_per_mm),
+                    round(self.__sheetDimensions['sheet_height']*self.__pixel_per_mm)),
+                color=1)
 
         while count > 0:
             """
