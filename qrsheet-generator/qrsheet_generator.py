@@ -27,11 +27,12 @@ SHEET_DIMENSIONS = {
 
 
 class QrSheetGenerator:
-    def __init__(self, count, sheetDimensions, offsetRows = 0, offsetColumns = 0, margin = 2, ppi = 600):
+    def __init__(self, count, sheetDimensions, offsetRows = 0, offsetColumns = 0, ppi = 600):
         self.__sheetDimensions = sheetDimensions
         self.__position_columns = offsetColumns-1
         self.__position_rows = offsetRows
         self.__pixel_per_mm = ppi/25.4
+        self.__margin = 2
 
         self.__sheet = Image.new(
                 str(1),
@@ -62,12 +63,12 @@ class QrSheetGenerator:
             if self.__position_rows == self.__sheetDimensions['rows']:
                 raise Exception('Number of rows exceeded.')
         return (
-            round(self.__sheetDimensions['sheet_margin_left']*self.__pixel_per_mm + 
-                self.__position_columns * self.__sheetDimensions['label_width']
-                * self.__pixel_per_mm),
-            round(self.__sheetDimensions['sheet_margin_top']*self.__pixel_per_mm + 
-                self.__position_rows * self.__sheetDimensions['label_height']
-                * self.__pixel_per_mm))
+            round((self.__sheetDimensions['sheet_margin_left']
+                    + self.__position_columns * self.__sheetDimensions['label_width']
+                    + self.__margin) * self.__pixel_per_mm),
+            round((self.__sheetDimensions['sheet_margin_top']
+                    + self.__position_rows * self.__sheetDimensions['label_height']
+                    + self.__margin) * self.__pixel_per_mm))
 
 
 if __name__ == "__main__":
