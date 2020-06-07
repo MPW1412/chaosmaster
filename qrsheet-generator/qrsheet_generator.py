@@ -47,7 +47,9 @@ class QrSheetGenerator:
             A UUID seems to need 29 blocks.
             Needs a proper FIX
             """
-            img = qrcode.make(str(uuid.uuid1()), box_size=13)
+            uuidObj = uuid.uuid1()
+            print (str(uuidObj))
+            img = qrcode.make(str(uuidObj), box_size=13)
             pos = self.__next_position_in_pixel()
             self.__sheet.paste(img, pos)
             count -= 1
@@ -72,7 +74,7 @@ class QrSheetGenerator:
 
 
 if __name__ == "__main__":
-    qrsg = QrSheetGenerator(10, SHEET_DIMENSIONS['100DINA4_BOEGEN_vielzweck_etiketten']['dimensions'])
+    qrsg = QrSheetGenerator(8, SHEET_DIMENSIONS['100DINA4_BOEGEN_vielzweck_etiketten']['dimensions'], offsetRows = 2, offsetColumns = 1)
     qrsg.imageSheet().save('test.png')
 
 
