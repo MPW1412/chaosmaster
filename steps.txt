@@ -1,0 +1,31 @@
+======================== MySQL Setup =================================
+
+CREATE DATABASE inventory_db;
+
+CREATE USER 'nedocsadmin'@'localhost' IDENTIFIED BY 'Admin@123';
+
+GRANT ALL PRIVILEGES ON *.* TO 'nedocsadmin'@'localhost';
+
+
+==================== Project Setup =================================
+step 1: Create Virtual Environment
+	- python3 -m virtualenv venv
+step 2: Activate Virtual Environment
+	- source venv/bin/activate
+step 3: pip install -r requirements.txt
+step 4: python3 manage.py makemigrations
+step 5: python3 manage.py migrate
+step 6: Create superuser
+	- python3 manage.py createsuperuser
+step 7: Go to http://127.0.0.1:8000/admin/
+	- Login with your super user credential
+
+
+===================== API URLs ====================================
+1. To get all Stored Objects
+http://127.0.0.1:8000/stored-objects/
+
+2. To get images of particular stored objects
+http://127.0.0.1:8000/images/318a3c78e2bd4c4091bff49c45cd6b9c/
+
+
