@@ -80,21 +80,14 @@ WSGI_APPLICATION = 'nedocs.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.inventory'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'inventory_db',
+        'USER' : 'nedocsadmin',
+        'PASSWORD' : 'Admin@123',
+        'HOST' : 'localhost',
+        'PORT' : '3306'
     }
 }
-
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.mysql',
-#        'NAME': 'inventory_db',
-#        'USER' : 'nedocsadmin',
-#        'PASSWORD' : 'Admin@123',
-#        'HOST' : 'localhost',
-#        'PORT' : '3306'
-#    }
-#}
 
 
 # Password validation
@@ -121,7 +114,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# TIME_ZONE = 'UTC'
+TIME_ZONE =  'Asia/Kolkata'
 
 USE_I18N = True
 

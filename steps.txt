@@ -21,11 +21,6 @@ step 7: Go to http://127.0.0.1:8000/admin/
 	- Login with your super user credential
 
 
-===================== API URLs ====================================
-1. To get all Stored Objects
-http://127.0.0.1:8000/stored-objects/
 
-2. To get images of particular stored objects
-http://127.0.0.1:8000/images/318a3c78e2bd4c4091bff49c45cd6b9c/
 
 
