@@ -1,21 +1,43 @@
 import Vue from 'vue'
-import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
+import Router from 'vue-router'
+import Home from '../components/Home'
+import HomeNew from '../components/HelloWorld'
+import Images from '../components/Images';
 
-Vue.use(VueRouter)
+Vue.use(Router)
 
-  const routes = [
-  {
-    path: '/',
-    name: 'Home',
-    component: Home
-  }
-]
+export default new Router ({
 
-const router = new VueRouter({
-  mode: 'history',
-  base: process.env.BASE_URL,
-  routes
+  routes: [
+    {
+      path: '/',
+      name: 'Home',
+      component: Home
+    },
+    {
+      path: '/home',
+      name: 'homenew',
+      component: HomeNew
+    },
+    {
+      path: '/objects/:uuid',
+      name: 'Images',
+      component: Images,
+      props: true
+
+    },
+    {
+      path: '*',
+      redirect: '/'
+    }
+  ],
+  mode:'history'
 })
 
-export default router
+// const router = new VueRouter({
+//   mode: 'history',
+//   base: process.env.BASE_URL,
+//   routes
+// })
+
+// export default router

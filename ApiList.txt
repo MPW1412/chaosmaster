@@ -22,3 +22,11 @@
 		-http://127.0.0.1:8000/images/change/6/
 	e. Delete particular image by id (DELETE)
 		-http://127.0.0.1:8000/images/change/6/
+
+3. NESTABLE OBJECTS URL
+	a. create relation for nestable objects(POST)
+		-http://127.0.0.1:8000/nestable-objects/
+	b. get all nestable objects relations(GET)
+		-http://127.0.0.1:8000/nestable-objects/
+	c. get nestable object of particular stored Object
+		-http://127.0.0.1:8000/nestable-objects/04396b1e-8dd3-4cd7-917c-bf5f027e2d54/

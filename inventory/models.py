@@ -18,6 +18,12 @@ def restrict_total_image(value):
     if images.count() > 10:
         raise ValidationError('Stored object already have a 10 images')
 
+def is_nestable(value):
+    objectData = StoredObjects.objects.filter(uuid=str(value)).first()
+    if not objectData.nestable:
+        raise ValidationError('Stored object is not nestable')
+    return True
+
 @deconstructible
 class UploadToPathAndRename(object):
 
@@ -96,4 +102,23 @@ class Images(models.Model):
     
     def __str__(self):
         return '{}-{}'.format(str(self.uuid.uuid), self.order)
+
+
+class NestableObjects(models.Model):
+    holdingUUID = models.ForeignKey(StoredObjects,
+                    related_name = 'holdingObject',
+                    on_delete = models.CASCADE)
+    containingUUID = models.ForeignKey(StoredObjects,
+                    validators = [is_nestable],
+                    unique= True,
+                    related_name = 'containingObject',
+                    on_delete = models.CASCADE)
+
+    class Meta:
+        verbose_name_plural = "Nestable Objects"
+        unique_together = ['holdingUUID', 'containingUUID']
+
+    def __str__(self):
+        return '{}-{}'.format(str(self.holdingUUID.uuid), self.containingUUID.uuid)
+
 
