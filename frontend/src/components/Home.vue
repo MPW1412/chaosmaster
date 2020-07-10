@@ -71,16 +71,47 @@
             <v-icon>mdi-camera</v-icon>
           </v-btn>
         </template>
+
+        
         <v-sheet height="300px">
-          <div id="scaleVideo">
-            <!-- <video ref="video" id="video" width="1280" height="720" autoplay></video> -->
-            <qrcode-stream @decode="onDecode" @init="onInit" />
-          </div>
-          <div id="labels">
-            <p>{{ error }}</p>
-            <p>UUID:</p>
-            <p><b>{{ currentUUID }}</b></p>
-          </div>
+          <v-row>
+            <v-col cols="4">
+              <div id="scaleVideo">
+                <!-- <video ref="video" id="video" width="1280" height="720" autoplay></video> -->
+                <qrcode-stream @decode="onDecode" @init="onInit" />
+                <vue-webcam ref='webcam' />
+              </div>
+            </v-col>
+            <v-col cols="8">
+              <p v-if="error">{{ error }}</p>
+              <p>UUID: <b>{{ currentUUID }}</b></p>
+              <v-btn @click="takePhoto"
+                :disabled="photos.length >= 10">
+                Take Photos
+              </v-btn>
+              <v-row style="overflow-y: auto; height: 250px; padding: 15px;"
+                no-gutters v-if="photos.length > 0 || selectedPhotos.length > 0">
+                <v-col
+                  v-for="n in photos"
+                  :key="n"
+                  cols="12"
+                  sm="2">
+                    <img :src="n" alt="" v-if="itemsContains(n)"
+                      style="width:100px;height:100px" 
+                      class= "preview-selected-image"
+                      @click="selectedPhotos(n)"/>
+                    <img :src="n" alt="" v-else
+                      style="width:100px;height:100px" 
+                      class= "preview-image"
+                      @click="selectedPhotos(n)"/> 
+                    <v-btn class="custom-button-delete"
+                      @click="removePhoto(n)">
+                      <v-icon>mdi-close</v-icon>
+                    </v-btn>
+                </v-col>
+              </v-row>
+            </v-col>
+          </v-row>
         </v-sheet>
       </v-bottom-sheet>
     </v-bottom-navigation>
@@ -256,13 +287,18 @@
 
 <script>
 import storeObjectApi from '../api/storedObject';
+import imagesApi from '../api/images';
 import nestableObjectApi from '../api/nestableObject';
 import { QrcodeStream } from 'vue-qrcode-reader';
+import VueWebcam from "vue-webcam";
 
 export default {
   name: 'Home',
 
-  components: { QrcodeStream },
+  components: { 
+    QrcodeStream,
+    VueWebcam
+  },
 
   data(){
     return {
@@ -277,6 +313,8 @@ export default {
       createObject: false,
       message:'',
       create: false,
+      photos:[],
+      selectedPhotosList:[],
       types: [
         {
           id: 1, 
@@ -322,6 +360,59 @@ export default {
 
   methods: {
 
+    takePhoto() {
+      const getPhoto = this.$refs.webcam.getPhoto();
+      this.photos.push(getPhoto);
+    },
+
+    selectedPhotos(photo){
+      if(this.selectedPhotosList.includes(photo)){
+        this.selectedPhotosList.splice(this.selectedPhotosList.indexOf(photo), 1);
+      }else{
+        this.selectedPhotosList.push(photo)
+      }
+    },
+
+    itemsContains(n) {
+      return this.selectedPhotosList.includes(n)
+    },
+
+    removePhoto(n){
+      this.photos.splice(this.photos.indexOf(n), 1);
+      if(this.selectedPhotosList.includes(n)){
+        this.selectedPhotosList.splice(this.selectedPhotosList.indexOf(n), 1);
+      }
+    }, 
+
+    dataURLtoFile(dataurl, filename) {
+ 
+      let arr = dataurl.split(','),
+          mime = arr[0].match(/:(.*?);/)[1],
+          bstr = atob(arr[1]), 
+          n = bstr.length, 
+          u8arr = new Uint8Array(n);
+          
+      while(n--){
+          u8arr[n] = bstr.charCodeAt(n);
+      }        
+      return new File([u8arr], filename, {type:mime});
+    },
+
+    async callImageAPI(uuid){
+      const total_images= await imagesApi.getStoreObjectImages(uuid);
+      let order = 1
+      if(total_images.status){
+        order = order + parseInt(total_images.total_count);
+      }
+      await this.selectedPhotosList.map(async (photo, key) => {
+        const file =await this.dataURLtoFile(photo,`order-${key+order}.jpg`);
+        let data = new FormData();
+        data.append('path', file)
+        data.append('order', key + order)
+        await imagesApi.addImageToStoreObject(uuid, data)
+      }); 
+    },
+
     // Get the UUID from QR Scan
     async onDecode (currentUUID) {
       console.log("DECODE", currentUUID)
@@ -338,6 +429,12 @@ export default {
               'containingUUID': currentUUID
             }
             await nestableObjectApi.createNestableObject(nestableData)
+          }
+          // Attach Images
+          if(this.selectedPhotosList.length > 0){
+            await this.callImageAPI(this.currentUUID)
+            this.photos = this.photos.filter(x => !this.selectedPhotosList.includes(x))
+            this.selectedPhotosList = []
           }
           this.getStoredObjectImages(currentUUID)  
         }else{
@@ -372,7 +469,6 @@ export default {
     cameraMode() {
       setTimeout(() => {
           this.video = document.querySelector('#video');
-          console.log(this.video);
           if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
           navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720}}, audio: false }).then(stream => {
               this.video.srcObject = stream;
@@ -410,8 +506,13 @@ export default {
       this.addObject = true 
       this.createObject = false
       this.create = false
-      const added = await storeObjectApi.addStoreObject(this.form);
-      console.log("++++++++++++++++++", added)  
+      await storeObjectApi.addStoreObject(this.form); 
+      // Attach Images
+      if(this.selectedPhotosList.length > 0){
+        await this.callImageAPI(this.currentUUID)
+        this.photos = this.photos.filter(x => !this.selectedPhotosList.includes(x))
+        this.selectedPhotosList = []
+      }
     },
     
     // Close the create store object form
@@ -453,7 +554,12 @@ export default {
     },
 
     // Go to particular object page
-    getStoredObjectImages(uuid){
+    async getStoredObjectImages(uuid){
+      if(this.selectedPhotosList.length > 0){
+        await this.callImageAPI(uuid)
+        this.photos = this.photos.filter(x => !this.selectedPhotosList.includes(x))
+        this.selectedPhotosList = []
+      }
       this.$router.push({name: 'Images', params:{"uuid": uuid}})
     }
   },           
@@ -463,7 +569,8 @@ export default {
 <style>
 #scaleVideo {
   transform-origin: left top;
-  transform: scale(calc(300/720));
+  transform: scale(calc(300/510)); 
+  /* 300/720 */
 }
 #labels {
   position: absolute;
@@ -504,4 +611,36 @@ export default {
   margin-bottom: 0px !important;
 }
 
+.preview-image{
+  border-style: none !important;
+}
+
+.preview-selected-image{
+  border-style: dashed !important;
+  border-color: #03fcf0 !important;
+}
+
+.overlay[data-v-1f90552a], .tracking-layer[data-v-1f90552a] {
+    position: inherit !important;
+}
+
+.camera[data-v-1f90552a], .pause-frame[data-v-1f90552a] {
+  display: block;
+  -o-object-fit: cover;
+  object-fit: cover;
+  width: auto !important;
+  height: auto !important;
+  margin-left: 15px;
+}
+
+.custom-button-delete {
+    border-radius: 25px;
+    min-width: 10px !important;
+    height: 22px !important;
+    padding: 0px 0px !important;
+    margin-top: -240px;
+    margin-left: 80px;
+    background-color: #ff5252 !important;
+    color: #FFFFFF !important;
+}
 </style>
