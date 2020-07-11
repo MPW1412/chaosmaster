@@ -78,7 +78,7 @@
             <v-col cols="4">
               <div id="scaleVideo">
                 <!-- <video ref="video" id="video" width="1280" height="720" autoplay></video> -->
-                <qrcode-stream @decode="onDecode" @init="onInit" />
+                <qrcode-stream @decode="onDecode" @init="onInit" ref='qrCode' />
                 <vue-webcam ref='webcam' />
               </div>
             </v-col>
@@ -305,7 +305,7 @@ export default {
       currentUUID: '',
       previousUUID: '',
       error: '',
-      sheet:'',
+      sheet:false,
       storeObject:'',
       images:'',
       addObject:false,
@@ -326,16 +326,6 @@ export default {
         }
       ],
       form:{
-        // uuid:'',
-        // name:'',
-        // description:'',
-        // purpose:'',
-        // owningEntity:'',
-        // locationEntity:'',
-        // visibility:'',
-        // quantity:'',
-        // category:'',
-        // standarisedObject:''
       },
       uuidRules: [
         v => {
@@ -358,10 +348,22 @@ export default {
     }
   },
 
+  watch: {
+      sheet: function () { 
+          if (this.sheet == false) {
+            console.log("Bottom sheet closed");
+            // this.$refs.webcam.$destroy()
+            // this.$refs.qrCode.$destroy()
+          }
+      }
+  },
+
   methods: {
 
     takePhoto() {
+      console.log(this.$refs.webcam)
       const getPhoto = this.$refs.webcam.getPhoto();
+
       this.photos.push(getPhoto);
     },
 

@@ -21,6 +21,9 @@
     </v-app-bar>
 
     <v-container>
+      <v-card-title>
+        Images:
+      </v-card-title>
       <v-row no-gutters v-if="images.length > 0">
         <v-col
             v-for="n in images"
@@ -58,9 +61,116 @@
       </v-row>
       <v-row v-else>
         NO IMAGES AVAILABLE
-      </v-row>
-    
+      </v-row>  
+      <v-card-title>
+        Object Details:
+      </v-card-title>  
+
+      <v-layout row>    
+        <v-card class="v-card-object">
+          <v-card-text>
+            <v-container grid-list-md>
+              <v-layout wrap>
+                <v-flex xs12 sm5>
+                  <v-text-field label="UUID" hide-details="auto"
+                    :value="uuid"
+                    readonly>
+                  </v-text-field>
+                </v-flex>
+                <v-flex xs12 sm2>
+                </v-flex>
+                <v-flex xs12 sm5>
+                   <v-select
+                  item-text="value"
+                  item-value="id"
+                  :items="types"
+                  :value="form.type"
+                  label="Type"
+                  readonly>
+                  </v-select>
+                </v-flex>
+                <v-flex xs12>
+                  <v-text-field label="Name" hide-details="auto"
+                    :value="form.name"
+                    readonly>
+                  </v-text-field>
+                </v-flex>
+                 <v-flex xs12>
+                  <v-text-field label="Description" hide-details="auto"
+                    :value="form.description"
+                    readonly>
+                  </v-text-field>
+                </v-flex>      
+                <v-flex xs12>
+                  <v-text-field label="Purpose" hide-details="auto"
+                    :value="form.purpose"
+                    readonly>
+                  </v-text-field>
+                </v-flex>  
+                <v-flex xs12 sm5>
+                  <v-checkbox label="Nestable"
+                    :value="form.nestable"
+                    readonly>
+                  </v-checkbox>
+                </v-flex>
+                <v-flex xs12 sm2>
+                </v-flex>
+                <v-flex xs12 sm5>
+                  <v-checkbox label="Completed"
+                    :value="form.completed"
+                    readonly>
+                  </v-checkbox>
+                </v-flex>
+                <v-flex xs12 sm5>
+                  <v-text-field label="Owning Entity" hide-details="auto"
+                    :value="form.owningEntity"
+                    readonly>
+                  </v-text-field>
+                </v-flex>
+                <v-flex xs12 sm2>
+                </v-flex>
+                <v-flex xs12 sm5>
+                  <v-text-field label="Location Entity UUID" hide-details="auto"
+                    :value="form.locationEntityUUID"
+                    readonly>
+                  </v-text-field>
+                </v-flex>
+                <v-flex xs12 sm5>
+                  <v-text-field label="Visibility" hide-details="auto"
+                    :value="form.visibility"
+                    readonly>
+                  </v-text-field>
+                </v-flex>
+                <v-flex xs12 sm2>
+                </v-flex>
+                <v-flex xs12 sm5>
+                  <v-text-field label="Quantity" hide-details="auto"
+                    :value="form.quantity"
+                    readonly>
+                  </v-text-field>
+                </v-flex>
+              
+                 <v-flex xs12 sm5>
+                  <v-text-field label="Category" hide-details="auto"
+                    :value="form.category"
+                    readonly>
+                  </v-text-field>
+                </v-flex>
+                  <v-flex xs12 sm2>
+                </v-flex>
+                <v-flex xs12 sm5>
+                  <v-text-field label="Standarised Object" hide-details="auto"
+                    :value="form.standarisedObject"
+                    readonly>
+                  </v-text-field>
+                </v-flex>
+              </v-layout>
+            </v-container>
+          </v-card-text>
+        </v-card>
+      </v-layout>  
     </v-container>
+
     <v-layout row justify-center>
       <v-dialog v-model="dialog" persistent max-width="290">
         <v-card class="dialog-custom">
@@ -420,6 +530,8 @@ export default {
         this.uuid = this.$route.params.uuid;
         this.images= await imagesApi.getStoreObjectImages(this.uuid);
         this.images = this.images.data;
+        const storedObjectData = await storeObjectApi.getStoreObjectByUUID(this.uuid)
+        this.form = storedObjectData.data
     },  
 };
 </script>
@@ -465,4 +577,7 @@ export default {
   padding: 10px !important;
 }
 
+.v-card-object{
+  width: 100% !important;
+}
 </style>
