@@ -78,8 +78,8 @@
             <v-col cols="4">
               <div id="scaleVideo">
                 <!-- <video ref="video" id="video" width="1280" height="720" autoplay></video> -->
-                <qrcode-stream @decode="onDecode" @init="onInit" ref='qrCode' />
-                <vue-webcam ref='webcam' />
+                <qrcode-stream @decode="onDecode" @init="onInit" v-if="camera" ref='qrCode' ></qrcode-stream>
+                <vue-webcam ref='webcam' v-if="camera"/>
               </div>
             </v-col>
             <v-col cols="8">
@@ -315,6 +315,7 @@ export default {
       create: false,
       photos:[],
       selectedPhotosList:[],
+      camera:true,
       types: [
         {
           id: 1, 
@@ -350,10 +351,10 @@ export default {
 
   watch: {
       sheet: function () { 
+          this.camera = true
           if (this.sheet == false) {
+            this.camera = false;
             console.log("Bottom sheet closed");
-            // this.$refs.webcam.$destroy()
-            // this.$refs.qrCode.$destroy()
           }
       }
   },
@@ -361,7 +362,6 @@ export default {
   methods: {
 
     takePhoto() {
-      console.log(this.$refs.webcam)
       const getPhoto = this.$refs.webcam.getPhoto();
 
       this.photos.push(getPhoto);
@@ -468,16 +468,16 @@ export default {
       }
     },
 
-    cameraMode() {
-      setTimeout(() => {
-          this.video = document.querySelector('#video');
-          if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-          navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720}}, audio: false }).then(stream => {
-              this.video.srcObject = stream;
-          });
-          }
-      }, 300);
-    },
+    // cameraMode() {
+    //   setTimeout(() => {
+    //       this.video = document.querySelector('#video');
+    //       if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    //       navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720}}, audio: false }).then(stream => {
+    //           this.video.srcObject = stream;
+    //       });
+    //       }
+    //   }, 300);
+    // },
 
     // Reset the form Data
     resetForm(){
