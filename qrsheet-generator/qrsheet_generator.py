@@ -108,25 +108,28 @@ def iMH():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('label', type=str, nargs='+', help='One Label per argument, subarguments semicolon separated: title; subtitle; count')
+    parser.add_argument('label', type=str, nargs='+', 
+            help='One Label per argument, subarguments semicolon separated: title; subtitle; count')
     parser.add_argument('--offsetRows', '-oR', type=int, help='Offset count rows', default=0)
     parser.add_argument('--offsetColumns', '-oC', type=int, help='Offset count columns', default=0)
     args = parser.parse_args()
+
     qrsg = QrSheetGenerator(SHEET_DIMENSIONS['topStick_8715_Universal_Etiketten_DINA4_105x48mm']['dimensions'],
             offsetRows = args.offsetRows, offsetColumns = args.offsetColumns)
+
     for label in args.label:
         title, subtitle, count = label.split(';')
-        print(title)
-        
         if count is None:
             count = 1
         else:
             count = int(count)
+
         labelObj = WideLabel(SHEET_DIMENSIONS['topStick_8715_Universal_Etiketten_DINA4_105x48mm']['dimensions'],
                 uuid.uuid4(), iMH(), textwrap.fill(title, width=14),
                 textwrap.fill(subtitle, width=28),
                 None, None )
         qrsg.insert_label(labelObj.img, repeat=count)
+
     qrsg.imageSheet().save('labels-p1.png')
         
     
