@@ -121,7 +121,7 @@ if __name__ == "__main__":
     for label in args.label:
         title, subtitle, count = label.split(';')
         
-        if count is not int:
+        if count is None or count == "":
             count = 1
         else:
             count = int(count)
