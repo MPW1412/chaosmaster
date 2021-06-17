@@ -1,38 +1,17 @@
 import qrcode
 import uuid
-from PIL import Image
-
-SHEET_DIMENSIONS = { 
-        '100DINA4_BOEGEN_vielzweck_etiketten': {
-            'EAN': '4042318015549',
-            'article-number': '65020207',
-            'manufacteurer': 'endihaft',
-            'comment': 'Din A4 sheet of labels 20x20 mm one-sided adhesive',
-            'dimensions': {
-                'sheet_margin_left': 15,
-                'sheet_margin_right': 15,
-                'sheet_margin_top': 8.5,
-                'sheet_margin_bottom': 8.5,
-                'label_width': 20,
-                'label_height': 20,
-                'sheet_width': 210,
-                'sheet_height': 297,
-                'rows': 14,
-                'columns': 9,
-                'row_distance': 0,
-                'column_distance': 0
-                }
-            }
-        }
-
+from PIL import Image, ImageDraw, ImageFont
+from sheet_templates import SHEET_DIMENSIONS
+import textwrap
+import random
 
 class QrSheetGenerator:
-    def __init__(self, count, sheetDimensions, offsetRows = 0, offsetColumns = 0, ppi = 600):
+    def __init__(self, sheetDimensions, offsetRows = 0, offsetColumns = 0, ppi = 600):
         self.__sheetDimensions = sheetDimensions
         self.__position_columns = offsetColumns-1
         self.__position_rows = offsetRows
         self.__pixel_per_mm = ppi/25.4
-        self.__margin = 2
+        self.__margin = 1
 
         self.__sheet = Image.new(
                 str(1),
@@ -40,19 +19,19 @@ class QrSheetGenerator:
                     round(self.__sheetDimensions['sheet_height']*self.__pixel_per_mm)),
                 color=1)
 
-        while count > 0:
-            """
-            box_size=13 is an ugly hack so far. Giving the pixel per block seems to be
-            the only way to set the size of the resulting qrcode img object. 
-            A UUID seems to need 29 blocks.
-            Needs a proper FIX
-            """
-            uuidObj = uuid.uuid1()
-            print (str(uuidObj))
-            img = qrcode.make(str(uuidObj), box_size=13)
-            pos = self.__next_position_in_pixel()
-            self.__sheet.paste(img, pos)
-            count -= 1
+#        while count > 0:
+#            """
+#            box_size=13 is an ugly hack so far. Giving the pixel per block seems to be
+#            the only way to set the size of the resulting qrcode img object. 
+#            A UUID seems to need 29 blocks.
+#            Needs a proper FIX
+#            """
+#            uuidObj = uuid.uuid1()
+#            print (str(uuidObj))
+#            img = qrcode.make('c0h.de/' + str(uuidObj) + 'yah6Tai7Fi', box_size=10)
+#            pos = self.__next_position_in_pixel()
+#            self.__sheet.paste(img, pos)
+#            count -= 1
 
     def imageSheet(self):
         return self.__sheet
@@ -70,16 +49,77 @@ class QrSheetGenerator:
                     + self.__margin) * self.__pixel_per_mm),
             round((self.__sheetDimensions['sheet_margin_top']
                     + self.__position_rows * self.__sheetDimensions['label_height']
-                    + self.__margin) * self.__pixel_per_mm))
+                    + self.__position_rows * self.__margin) * self.__pixel_per_mm))
+    
+    def insert_label(self, ImgObj: Image, repeat: int = 1):
+        for j in range(0, repeat):
+            pos = self.__next_position_in_pixel()
+            self.__sheet.paste(ImgObj, pos)
+            
+
+
+class WideLabel:
+    ORIENTATION_ARROWS = {
+        'N': u'\U0001f871',
+        'NE': u'🡵',
+        'E': u'🡲',
+        'SE': u'🡶',
+        'S': u'🡳',
+        'SW': u'🡷',
+        'W': u'🡰',
+        'NW': u'🡴'
+    }
+    
+    def __init__(self, dimensions, uuidObj: uuid, imhCode: str, description: str = None, secondary_description: str = None, navigationArrow: chr = None, navigationText: str = None) -> None:
+        self.uuid = uuid
+        self.imhCode = imhCode
+        self.description = description
+        self.navigationArrow = navigationArrow
+        self.navigationText = navigationText
+        self.ppi = 600
+        self.__pixel_per_mm = self.ppi/25.4
+        self.__dimensions = dimensions
+        x = round(self.__dimensions['label_width']*self.__pixel_per_mm)
+        y = round(self.__dimensions['label_height']*self.__pixel_per_mm)
+        self.img = Image.new(str(1), (x, y), color=1)
+        draw = ImageDraw.Draw(self.img)
+        draw.line([x * 0.17, y * 0.04, x * 0.17, y * 0.96], fill=None, width=2)
+        draw.line([x * 0.171 + 0.73 * y, y * 0.04, x * 0.171 + 0.73 * y, y * 0.96], fill=None, width=2)
+        qrimg = qrcode.make('c0h.de/' + str(uuidObj) + '?c=' + imhCode, box_size=20)
+        self.img.paste(qrimg, (round(x * 0.171), 0))
+        fontObj = ImageFont.truetype("/usr/share/fonts/truetype/freefont/FreeMono.ttf", 68, encoding="unic")
+        draw.text((round(x * 0.19), round(0.78*y)), str(uuidObj)[0:18], font = fontObj)
+        draw.text((round(x * 0.19), round(0.83*y)), str(uuidObj)[18:], font = fontObj)
+        draw.text((round(x * 0.19), round(0.9*y)), 'IMH: ' + imhCode, font = fontObj)
+        if navigationArrow is not None:
+            fontObj = ImageFont.truetype('/usr/share/fonts/truetype/freefont/FreeMono.ttf', 150, encoding = 'utf-8')
+            draw.text((round(x*0.07), round(0.4*y)), WideLabel.ORIENTATION_ARROWS[navigationArrow], font = fontObj)
+        fontObj = ImageFont.truetype('/usr/share/fonts/truetype/freefont/FreeSans.ttf', 150, encoding = 'utf-8')
+        draw.text((round(x*0.52 ), round(y * 0.05)), description, font = fontObj)
+        fontObj = ImageFont.truetype('/usr/share/fonts/truetype/freefont/FreeSans.ttf', 75, encoding = 'utf-8')
+        draw.text((round(x*0.52 ), round(y * 0.51)), secondary_description, font = fontObj)
+
+def iMH():
+    return ''.join(random.choice('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ') for i in range(12))
 
 
 if __name__ == "__main__":
-    qrsg = QrSheetGenerator(8, SHEET_DIMENSIONS['100DINA4_BOEGEN_vielzweck_etiketten']['dimensions'], offsetRows = 2, offsetColumns = 1)
+    qrsg = QrSheetGenerator(SHEET_DIMENSIONS['topStick_8715_Universal_Etiketten_DINA4_105x48mm']['dimensions'],
+            offsetRows = 3, offsetColumns = 0)
+    testLabel = WideLabel(SHEET_DIMENSIONS['topStick_8715_Universal_Etiketten_DINA4_105x48mm']['dimensions'],
+            uuid.uuid1(), iMH(), textwrap.fill('Computerteile', width=14),
+            textwrap.fill('Bspw. Festplatten, Steckkarten, Kabel etc.', width=28),
+            None, None )
+    qrsg.insert_label(testLabel.img, repeat=2)
+    testLabel = WideLabel(SHEET_DIMENSIONS['topStick_8715_Universal_Etiketten_DINA4_105x48mm']['dimensions'],
+            uuid.uuid1(), iMH(), textwrap.fill('Heimautomatisierung', width=14),
+            textwrap.fill('ESPs und Shellys, Kabel, Flasher', width=28),
+            None, None )
+    qrsg.insert_label(testLabel.img, repeat=2)
+    testLabel = WideLabel(SHEET_DIMENSIONS['topStick_8715_Universal_Etiketten_DINA4_105x48mm']['dimensions'],
+            uuid.uuid1(), iMH(), textwrap.fill('Freifunk Sammelkiste 1', width=14),
+            textwrap.fill('Router, Kabel, Freifunk-Utensilien', width=28),
+            None, None )
+    qrsg.insert_label(testLabel.img, repeat=2)
     qrsg.imageSheet().save('test.png')
-
-
-
-
-
-
 
