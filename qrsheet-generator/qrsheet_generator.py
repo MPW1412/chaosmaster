@@ -1,3 +1,5 @@
+#! /usr/bin/env python3
+
 import qrcode
 import uuid
 from PIL import Image, ImageDraw, ImageFont
@@ -5,8 +7,7 @@ from sheet_templates import SHEET_DIMENSIONS
 import textwrap
 import random
 import argparse
-
-from pprint import pprint
+import os
 
 class QrSheetGenerator:
     def __init__(self, sheetDimensions, offsetRows = 0, offsetColumns = 0, ppi = 600):
@@ -119,7 +120,8 @@ if __name__ == "__main__":
 
     for label in args.label:
         title, subtitle, count = label.split(';')
-        if count is None:
+        
+        if count is not int:
             count = 1
         else:
             count = int(count)
@@ -131,6 +133,8 @@ if __name__ == "__main__":
         qrsg.insert_label(labelObj.img, repeat=count)
 
     qrsg.imageSheet().save('labels-p1.png')
+    os.system("convert labels-p1.png -page a4 print-labels.pdf")
+    
         
     
 
