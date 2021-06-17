@@ -4,6 +4,9 @@ from PIL import Image, ImageDraw, ImageFont
 from sheet_templates import SHEET_DIMENSIONS
 import textwrap
 import random
+import argparse
+
+from pprint import pprint
 
 class QrSheetGenerator:
     def __init__(self, sheetDimensions, offsetRows = 0, offsetColumns = 0, ppi = 600):
@@ -104,17 +107,27 @@ def iMH():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('label', type=str, nargs='+', help='One Label per argument, subarguments semicolon separated: title; subtitle; count')
+    parser.add_argument('--offsetRows', '-oR', type=int, help='Offset count rows', default=0)
+    parser.add_argument('--offsetColumns', '-oC', type=int, help='Offset count columns', default=0)
+    args = parser.parse_args()
     qrsg = QrSheetGenerator(SHEET_DIMENSIONS['topStick_8715_Universal_Etiketten_DINA4_105x48mm']['dimensions'],
-            offsetRows = 0, offsetColumns = 0)
-    testLabel = WideLabel(SHEET_DIMENSIONS['topStick_8715_Universal_Etiketten_DINA4_105x48mm']['dimensions'],
-            uuid.uuid4(), iMH(), textwrap.fill('Zu Verkaufen', width=14),
-            textwrap.fill('Sammelbox für zu verkaufende und potentiell noch Wert habende Sachen.', width=28),
-            None, None )
-    qrsg.insert_label(testLabel.img, repeat=2)
-    testLabel = WideLabel(SHEET_DIMENSIONS['topStick_8715_Universal_Etiketten_DINA4_105x48mm']['dimensions'],
-            uuid.uuid4(), iMH(), textwrap.fill('Freifunk Sammelkiste 2', width=14),
-            textwrap.fill('Router, Kabel, Freifunk-Utensilien', width=28),
-            None, None )
-    qrsg.insert_label(testLabel.img, repeat=2)
-    qrsg.imageSheet().save('test.png')
+            offsetRows = args.offsetRows, offsetColumns = args.offsetColumns)
+    for label in args.label:
+        title, subtitle, count = label.split(';')
+        print(title)
+        
+        if count is None:
+            count = 1
+        else:
+            count = int(count)
+        labelObj = WideLabel(SHEET_DIMENSIONS['topStick_8715_Universal_Etiketten_DINA4_105x48mm']['dimensions'],
+                uuid.uuid4(), iMH(), textwrap.fill(title, width=14),
+                textwrap.fill(subtitle, width=28),
+                None, None )
+        qrsg.insert_label(labelObj.img, repeat=count)
+    qrsg.imageSheet().save('labels-p1.png')
+        
+    
 
