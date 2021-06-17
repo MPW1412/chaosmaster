@@ -74,7 +74,7 @@ class WideLabel:
         'NW': u'🡴'
     }
     
-    def __init__(self, dimensions, uuidObj: uuid, imhCode: str, description: str = None, secondary_description: str = None, navigationArrow: chr = None, navigationText: str = None) -> None:
+    def __init__(self, dimensions, uuidObj: uuid, imhCode: str, description: str = None, secondary_description: str = None, navigationArrow: chr = None, navigationText: str = None, drawBorders: bool = False) -> None:
         self.uuid = uuid
         self.imhCode = imhCode
         self.description = description
@@ -99,9 +99,45 @@ class WideLabel:
             fontObj = ImageFont.truetype('/usr/share/fonts/truetype/freefont/FreeMono.ttf', 150, encoding = 'utf-8')
             draw.text((round(x*0.07), round(0.4*y)), WideLabel.ORIENTATION_ARROWS[navigationArrow], font = fontObj)
         fontObj = ImageFont.truetype('/usr/share/fonts/truetype/freefont/FreeSans.ttf', 150, encoding = 'utf-8')
-        draw.text((round(x*0.52 ), round(y * 0.05)), description, font = fontObj)
+        description_lines = WideLabel.wrap_text(description, 0.48*x-0.05*y, fontObj)
+        height_counter = 0.05*y
+        for line in description_lines:
+            draw.text((round(x*0.52 ), height_counter), line, font = fontObj)
+            w, h = fontObj.getsize(line)
+            height_counter += h + 0.02*y
         fontObj = ImageFont.truetype('/usr/share/fonts/truetype/freefont/FreeSans.ttf', 75, encoding = 'utf-8')
-        draw.text((round(x*0.52 ), round(y * 0.51)), secondary_description, font = fontObj)
+        secondary_description_lines = WideLabel.wrap_text(secondary_description, 0.48*x-0.05*y, fontObj)
+        height_counter += 0.02*y
+        for line in secondary_description_lines:
+            draw.text((round(x*0.52 ), height_counter), line, font = fontObj)
+            w, h = fontObj.getsize(line)
+            height_counter += h + 0.01*y
+        if drawBorders:
+            draw.line([(0,0), (x-1, 0), (x-1,y-1), (0, y-1), (0,0)], fill=None, width=1)
+            
+    def wrap_text(text, width, font):
+        text_lines = []
+        text_line = []
+        text = text.replace('\n', ' [br] ')
+        words = text.split()
+        font_size = font.getsize(text)
+    
+        for word in words:
+            if word == '[br]':
+                text_lines.append(' '.join(text_line))
+                text_line = []
+                continue
+            text_line.append(word)
+            w, h = font.getsize(' '.join(text_line))
+            if w > width:
+                text_line.pop()
+                text_lines.append(' '.join(text_line))
+                text_line = [word]
+    
+        if len(text_line) > 0:
+            text_lines.append(' '.join(text_line))
+    
+        return text_lines
 
 def iMH():
     return ''.join(random.choice('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ') for i in range(12))
@@ -127,9 +163,7 @@ if __name__ == "__main__":
             count = int(count)
 
         labelObj = WideLabel(SHEET_DIMENSIONS['topStick_8715_Universal_Etiketten_DINA4_105x48mm']['dimensions'],
-                uuid.uuid4(), iMH(), textwrap.fill(title, width=14),
-                textwrap.fill(subtitle, width=28),
-                None, None )
+                uuid.uuid4(), iMH(), title, subtitle, None, None )
         qrsg.insert_label(labelObj.img, repeat=count)
 
     qrsg.imageSheet().save('labels-p1.png')
