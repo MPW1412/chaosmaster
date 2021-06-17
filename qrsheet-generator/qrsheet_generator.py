@@ -105,19 +105,14 @@ def iMH():
 
 if __name__ == "__main__":
     qrsg = QrSheetGenerator(SHEET_DIMENSIONS['topStick_8715_Universal_Etiketten_DINA4_105x48mm']['dimensions'],
-            offsetRows = 3, offsetColumns = 0)
+            offsetRows = 0, offsetColumns = 0)
     testLabel = WideLabel(SHEET_DIMENSIONS['topStick_8715_Universal_Etiketten_DINA4_105x48mm']['dimensions'],
-            uuid.uuid1(), iMH(), textwrap.fill('Computerteile', width=14),
-            textwrap.fill('Bspw. Festplatten, Steckkarten, Kabel etc.', width=28),
+            uuid.uuid4(), iMH(), textwrap.fill('Zu Verkaufen', width=14),
+            textwrap.fill('Sammelbox für zu verkaufende und potentiell noch Wert habende Sachen.', width=28),
             None, None )
     qrsg.insert_label(testLabel.img, repeat=2)
     testLabel = WideLabel(SHEET_DIMENSIONS['topStick_8715_Universal_Etiketten_DINA4_105x48mm']['dimensions'],
-            uuid.uuid1(), iMH(), textwrap.fill('Heimautomatisierung', width=14),
-            textwrap.fill('ESPs und Shellys, Kabel, Flasher', width=28),
-            None, None )
-    qrsg.insert_label(testLabel.img, repeat=2)
-    testLabel = WideLabel(SHEET_DIMENSIONS['topStick_8715_Universal_Etiketten_DINA4_105x48mm']['dimensions'],
-            uuid.uuid1(), iMH(), textwrap.fill('Freifunk Sammelkiste 1', width=14),
+            uuid.uuid4(), iMH(), textwrap.fill('Freifunk Sammelkiste 2', width=14),
             textwrap.fill('Router, Kabel, Freifunk-Utensilien', width=28),
             None, None )
     qrsg.insert_label(testLabel.img, repeat=2)
