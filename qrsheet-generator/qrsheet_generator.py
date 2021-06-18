@@ -4,6 +4,7 @@ import qrcode
 import uuid
 from PIL import Image, ImageDraw, ImageFont
 from sheet_templates import SHEET_DIMENSIONS
+from math import ceil
 import textwrap
 import random
 import argparse
@@ -27,8 +28,8 @@ class QrSheetGenerator:
         self.__position_rows = offsetRows
         self.__sheets.append(Image.new(
                 str(1),
-                (round(self.__sheetDimensions['sheet_width']*self.__pixel_per_mm),
-                    round(self.__sheetDimensions['sheet_height']*self.__pixel_per_mm)),
+                (ceil(self.__sheetDimensions['sheet_width']*self.__pixel_per_mm),
+                    ceil(self.__sheetDimensions['sheet_height']*self.__pixel_per_mm)),
                 color=1))
 
     def imageSheet(self):
@@ -44,23 +45,27 @@ class QrSheetGenerator:
                 self.__position_columns += 1
         return (
             round((self.__sheetDimensions['sheet_margin_left']
-                    + self.__position_columns * self.__sheetDimensions['label_width']
-                    + self.__margin) * self.__pixel_per_mm),
+                    + self.__position_columns * self.__sheetDimensions['label_width']) * self.__pixel_per_mm),
             round((self.__sheetDimensions['sheet_margin_top']
-                    + self.__position_rows * self.__sheetDimensions['label_height']
-                    + self.__position_rows * self.__margin) * self.__pixel_per_mm))
+                    + self.__position_rows * self.__sheetDimensions['label_height']) * self.__pixel_per_mm))
     
     def insert_label(self, ImgObj: Image, repeat: int = 1):
         for j in range(0, repeat):
             pos = self.__next_position_in_pixel()
+            print(pos)
             self.__sheets[-1].paste(ImgObj, pos)
             
     def save_pages_as_pdf(self):
         del_names = ""
         pdf_names = ""
+        crops = (round(6 * self.__pixel_per_mm), round(6 * self.__pixel_per_mm),
+                round(5 * self.__pixel_per_mm) + round((self.__sheetDimensions['sheet_width'] - 6 - 5) * self.__pixel_per_mm),
+                round(6 * self.__pixel_per_mm) + round((self.__sheetDimensions['sheet_height'] - 6 - 3) * self.__pixel_per_mm))
+        
+        print(crops)
         for j in range(0, len(self.__sheets)):
             name = f".tmp-{j}"
-            self.__sheets[j].save(f"{name}.png")
+            self.__sheets[j].crop(crops).save(f"{name}.png")
             os.system(f"convert {name}.png -page a4 {name}.pdf")
             pdf_names += f" {name}.pdf"
             del_names += f" {name}.png {name}.pdf"
@@ -94,14 +99,14 @@ class WideLabel:
         y = round(self.__dimensions['label_height']*self.__pixel_per_mm)
         self.img = Image.new(str(1), (x, y), color=1)
         draw = ImageDraw.Draw(self.img)
-        draw.line([x * 0.17, y * 0.04, x * 0.17, y * 0.96], fill=None, width=2)
-        draw.line([x * 0.171 + 0.73 * y, y * 0.04, x * 0.171 + 0.73 * y, y * 0.96], fill=None, width=2)
+        draw.line([x * 0.17, y * 0.09, x * 0.17, y * 0.91], fill=None, width=2)
+        draw.line([x * 0.171 + 0.73 * y, y * 0.09, x * 0.171 + 0.73 * y, y * 0.91], fill=None, width=2)
         qrimg = qrcode.make('c0h.de/' + str(uuidObj) + '?c=' + imhCode, box_size=20)
-        self.img.paste(qrimg, (round(x * 0.171), 0))
+        self.img.paste(qrimg, (round(x * 0.171), round(0.05*y)))
         fontObj = ImageFont.truetype("/usr/share/fonts/truetype/freefont/FreeMono.ttf", 68, encoding="unic")
-        draw.text((round(x * 0.19), round(0.78*y)), str(uuidObj)[0:18], font = fontObj)
-        draw.text((round(x * 0.19), round(0.83*y)), str(uuidObj)[18:], font = fontObj)
-        draw.text((round(x * 0.19), round(0.9*y)), 'IMH: ' + imhCode, font = fontObj)
+        draw.text((round(x * 0.19), round(0.75*y)), str(uuidObj)[0:18], font = fontObj)
+        draw.text((round(x * 0.19), round(0.80*y)), str(uuidObj)[18:], font = fontObj)
+        draw.text((round(x * 0.19), round(0.86*y)), 'IMH: ' + imhCode, font = fontObj)
         if navigationArrow is not None:
             fontObj = ImageFont.truetype('/usr/share/fonts/truetype/noto/NotoSansSymbols2-Regular.ttf', 350, encoding = 'utf-8')
             w, h = fontObj.getsize(WideLabel.ORIENTATION_ARROWS[navigationArrow])
@@ -123,7 +128,7 @@ class WideLabel:
             
         fontObj = ImageFont.truetype('/usr/share/fonts/truetype/freefont/FreeSans.ttf', 150, encoding = 'utf-8')
         description_lines = WideLabel.wrap_text(description, 0.48*x-0.05*y, fontObj)
-        height_counter = 0.05*y
+        height_counter = 0.125*y
         for line in description_lines:
             draw.text((round(x*0.52 ), height_counter), line, font = fontObj)
             w, h = fontObj.getsize(line)
