@@ -103,8 +103,24 @@ class WideLabel:
         draw.text((round(x * 0.19), round(0.83*y)), str(uuidObj)[18:], font = fontObj)
         draw.text((round(x * 0.19), round(0.9*y)), 'IMH: ' + imhCode, font = fontObj)
         if navigationArrow is not None:
-            fontObj = ImageFont.truetype('/usr/share/fonts/truetype/freefont/FreeMono.ttf', 150, encoding = 'utf-8')
-            draw.text((round(x*0.07), round(0.4*y)), WideLabel.ORIENTATION_ARROWS[navigationArrow], font = fontObj)
+            fontObj = ImageFont.truetype('/usr/share/fonts/truetype/noto/NotoSansSymbols2-Regular.ttf', 350, encoding = 'utf-8')
+            w, h = fontObj.getsize(WideLabel.ORIENTATION_ARROWS[navigationArrow])
+            x1 = (x * 0.17 - w)/2
+            y1 = (0.33 * y - h)/2
+            draw.text((x1, y1), WideLabel.ORIENTATION_ARROWS[navigationArrow], font = fontObj)
+            fontObj = ImageFont.truetype('/usr/share/fonts/truetype/freefont/FreeSans.ttf', 68, encoding = 'utf-8')
+            orientation_lines = WideLabel.wrap_text(navigationText, 0.16*x, fontObj)
+            total_height = 0
+            for line in orientation_lines:
+                w, h = fontObj.getsize(line)
+                total_height += h + 0.01*y 
+            total_height -= 0.01*y
+            height_counter = 0.67*y-total_height/2
+            for line in orientation_lines:
+                w, h = fontObj.getsize(line)
+                draw.text(((0.17*x-w)/2, height_counter), line, font = fontObj)
+                height_counter += h + 0.01*y
+            
         fontObj = ImageFont.truetype('/usr/share/fonts/truetype/freefont/FreeSans.ttf', 150, encoding = 'utf-8')
         description_lines = WideLabel.wrap_text(description, 0.48*x-0.05*y, fontObj)
         height_counter = 0.05*y
