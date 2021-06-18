@@ -10,35 +10,29 @@ import argparse
 import os
 
 class QrSheetGenerator:
-    def __init__(self, sheetDimensions, offsetRows = 0, offsetColumns = 0, ppi = 600):
-        self.__sheetDimensions = sheetDimensions
-        self.__position_columns = offsetColumns-1
-        self.__position_rows = offsetRows
+    def __init__(self, sheetTemplate, offsetRows = 0, offsetColumns = 0, ppi = 600):
+        if sheetTemplate not in SHEET_DIMENSIONS:
+            raise Exception('Unknown Sheet Configuration')
+        self.__sheetTemplateName = sheetTemplate
+        self.__sheetDimensions = SHEET_DIMENSIONS[self.__sheetTemplateName]['dimensions']
         self.__pixel_per_mm = ppi/25.4
         self.__margin = 1
+        
+        self.__sheets = []
+        self.__newPage(offsetRows, offsetColumns)
 
-        self.__sheet = Image.new(
+        
+    def __newPage(self, offsetRows = 0, offsetColumns = 0):
+        self.__position_columns = offsetColumns-1
+        self.__position_rows = offsetRows
+        self.__sheets.append(Image.new(
                 str(1),
                 (round(self.__sheetDimensions['sheet_width']*self.__pixel_per_mm),
                     round(self.__sheetDimensions['sheet_height']*self.__pixel_per_mm)),
-                color=1)
-
-#        while count > 0:
-#            """
-#            box_size=13 is an ugly hack so far. Giving the pixel per block seems to be
-#            the only way to set the size of the resulting qrcode img object. 
-#            A UUID seems to need 29 blocks.
-#            Needs a proper FIX
-#            """
-#            uuidObj = uuid.uuid1()
-#            print (str(uuidObj))
-#            img = qrcode.make('c0h.de/' + str(uuidObj) + 'yah6Tai7Fi', box_size=10)
-#            pos = self.__next_position_in_pixel()
-#            self.__sheet.paste(img, pos)
-#            count -= 1
+                color=1))
 
     def imageSheet(self):
-        return self.__sheet
+        return self.__sheets
 
     def __next_position_in_pixel(self):
         self.__position_columns += 1
@@ -46,7 +40,8 @@ class QrSheetGenerator:
             self.__position_columns = 0
             self.__position_rows += 1
             if self.__position_rows == self.__sheetDimensions['rows']:
-                raise Exception('Number of rows exceeded.')
+                self.__newPage()
+                self.__position_columns += 1
         return (
             round((self.__sheetDimensions['sheet_margin_left']
                     + self.__position_columns * self.__sheetDimensions['label_width']
@@ -58,10 +53,20 @@ class QrSheetGenerator:
     def insert_label(self, ImgObj: Image, repeat: int = 1):
         for j in range(0, repeat):
             pos = self.__next_position_in_pixel()
-            self.__sheet.paste(ImgObj, pos)
+            self.__sheets[-1].paste(ImgObj, pos)
             
-
-
+    def save_pages_as_pdf(self):
+        del_names = ""
+        pdf_names = ""
+        for j in range(0, len(self.__sheets)):
+            name = f".tmp-{j}"
+            self.__sheets[j].save(f"{name}.png")
+            os.system(f"convert {name}.png -page a4 {name}.pdf")
+            pdf_names += f" {name}.pdf"
+            del_names += f" {name}.png {name}.pdf"
+        os.system(f"pdftk {pdf_names} cat output print-labels.pdf")
+        os.system(f"rm {del_names}")
+        
 class WideLabel:
     ORIENTATION_ARROWS = {
         'N': u'\U0001f871',
@@ -74,7 +79,9 @@ class WideLabel:
         'NW': u'🡴'
     }
     
-    def __init__(self, dimensions, uuidObj: uuid, imhCode: str, description: str = None, secondary_description: str = None, navigationArrow: chr = None, navigationText: str = None, drawBorders: bool = False) -> None:
+    def __init__(self, dimensions, uuidObj: uuid, imhCode: str, description: str = None,
+            secondary_description: str = None, navigationArrow: chr = None, navigationText: str = None,
+            drawBorders: bool = False) -> None:
         self.uuid = uuid
         self.imhCode = imhCode
         self.description = description
@@ -149,9 +156,10 @@ if __name__ == "__main__":
             help='One Label per argument, subarguments semicolon separated: title; subtitle; count')
     parser.add_argument('--offsetRows', '-oR', type=int, help='Offset count rows', default=0)
     parser.add_argument('--offsetColumns', '-oC', type=int, help='Offset count columns', default=0)
+    parser.add_argument('--print-borders', action="store_true", help="Print borders around labels, for testing only")
     args = parser.parse_args()
 
-    qrsg = QrSheetGenerator(SHEET_DIMENSIONS['topStick_8715_Universal_Etiketten_DINA4_105x48mm']['dimensions'],
+    qrsg = QrSheetGenerator('topStick_8715_Universal_Etiketten_DINA4_105x48mm',
             offsetRows = args.offsetRows, offsetColumns = args.offsetColumns)
 
     for label in args.label:
@@ -163,11 +171,11 @@ if __name__ == "__main__":
             count = int(count)
 
         labelObj = WideLabel(SHEET_DIMENSIONS['topStick_8715_Universal_Etiketten_DINA4_105x48mm']['dimensions'],
-                uuid.uuid4(), iMH(), title, subtitle, None, None )
+                uuid.uuid4(), iMH(), title, subtitle, None, None, drawBorders=args.print_borders)
         qrsg.insert_label(labelObj.img, repeat=count)
+    
+    qrsg.save_pages_as_pdf()
 
-    qrsg.imageSheet().save('labels-p1.png')
-    os.system("convert labels-p1.png -page a4 print-labels.pdf")
     
         
     
