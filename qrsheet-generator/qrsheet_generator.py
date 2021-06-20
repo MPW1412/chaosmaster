@@ -6,13 +6,10 @@ import uuid
 from PIL import Image, ImageDraw, ImageFont
 from sheet_templates import SHEET_DIMENSIONS
 from math import ceil
-import textwrap
 import random
 import argparse
 import os
 import math
-from autocrop import Cropper
-
 import sys
 
 class QrSheetGenerator:
@@ -29,10 +26,16 @@ class QrSheetGenerator:
             self._margins = margins
         else:
             self._margins = [0, 0, 0, 0]
-
+            
+        self.pos_available = self.__sheetDimensions['rows'] * self.__sheetDimensions['columns']
+        if offsetRows > 0:
+            self.pos_available -= offsetRows * self.__sheetDimensions['columns']
+        if offsetColumns > 0:
+            self.pos_available -= offsetColumns
+            
     def __newPage(self, offsetRows = 0, offsetColumns = 0):
-        self.__position_columns = offsetColumns-1
-        self.__position_rows = offsetRows
+        self.position_columns = offsetColumns-1
+        self.position_rows = offsetRows
         self.__sheets.append(Image.new(
                 str(1),
                 (ceil(self.__sheetDimensions['sheet_width']*self._pixel_per_mm),
@@ -43,25 +46,25 @@ class QrSheetGenerator:
         return self.__sheets
 
     def __next_position_in_pixel(self):
-        self.__position_columns += 1
-        if self.__position_columns == self.__sheetDimensions['columns']:
-            self.__position_columns = 0
-            self.__position_rows += 1
-            if self.__position_rows == self.__sheetDimensions['rows']:
+        self.pos_available -= 1
+        self.position_columns += 1
+        if self.position_columns == self.__sheetDimensions['columns']:
+            self.position_columns = 0
+            self.position_rows += 1
+            if self.position_rows == self.__sheetDimensions['rows']:
                 self.__newPage()
-                self.__position_columns += 1
+                self.pos_available = self.__sheetDimensions['rows'] * self.__sheetDimensions['columns'] - 1
+                self.position_columns += 1
         return (
             round((self.__sheetDimensions['sheet_margin_left']
-                    + self.__position_columns * self.__sheetDimensions['label_width']) * self._pixel_per_mm),
+                    + self.position_columns * self.__sheetDimensions['label_width']) * self._pixel_per_mm),
             round((self.__sheetDimensions['sheet_margin_top']
-                    + self.__position_rows * self.__sheetDimensions['label_height']) * self._pixel_per_mm))
+                    + self.position_rows * self.__sheetDimensions['label_height']) * self._pixel_per_mm))
     
     def insert_label(self, imgObj: Image, repeat: int = 1):
         for j in range(0, repeat):
             pos = self.__next_position_in_pixel()
-            print(self.__sheetDimensions['sheet_margin_left']) 
-            print(self._margins[0]) 
-            if (self.__sheetDimensions['sheet_margin_left'] < self._margins[0]) and self.__position_columns == 0:
+            if (self.__sheetDimensions['sheet_margin_left'] < self._margins[0]) and self.position_columns == 0:
                 imgObj_rotated = imgObj.copy().rotate(180)
                 self.__sheets[-1].paste(imgObj_rotated, pos)
             else: 
@@ -292,7 +295,6 @@ if __name__ == "__main__":
     if template_name is None:
         print("Paper template could not be found.")
         sys.exit(1)
-    print(template_name)
             
     margins = PRINTERS[list(PRINTERS.keys())[0]]['margins']
     
@@ -301,7 +303,6 @@ if __name__ == "__main__":
     label_left_margin = qrsg.get_left_margin_complying_with_printer_limitations_in_mm()
     label_top_margin = qrsg.get_top_margin_complying_with_printer_limitations_in_mm()
     
-    print(SHEET_DIMENSIONS[template_name]['recommended_label_type'])
     label_constructor = globals()[SHEET_DIMENSIONS[template_name]['recommended_label_type']]
 
     for label in args.label:
@@ -317,6 +318,14 @@ if __name__ == "__main__":
                 drawBorders=args.print_borders, margins = [label_left_margin, label_top_margin, label_left_margin, label_top_margin])
         qrsg.insert_label(labelObj.img, repeat=count)
     
+    if (args.fill_one_sheet == True):
+        for j in range(0, qrsg.pos_available):
+
+            labelObj = label_constructor(SHEET_DIMENSIONS[template_name]['dimensions'],
+                    uuid.uuid4(), iMH(), '', '',
+                    drawBorders=args.print_borders, margins = [label_left_margin, label_top_margin, label_left_margin, label_top_margin])
+            qrsg.insert_label(labelObj.img)
+
     qrsg.save_pages_as_pdf()
 
     
