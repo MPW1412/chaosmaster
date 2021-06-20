@@ -59,7 +59,9 @@ class QrSheetGenerator:
     def insert_label(self, imgObj: Image, repeat: int = 1):
         for j in range(0, repeat):
             pos = self.__next_position_in_pixel()
-            if self.__sheetDimensions['sheet_margin_left'] < self._margins[0] & self.__position_columns == 0:
+            print(self.__sheetDimensions['sheet_margin_left']) 
+            print(self._margins[0]) 
+            if (self.__sheetDimensions['sheet_margin_left'] < self._margins[0]) and self.__position_columns == 0:
                 imgObj_rotated = imgObj.copy().rotate(180)
                 self.__sheets[-1].paste(imgObj_rotated, pos)
             else: 
@@ -95,7 +97,7 @@ class QrSheetGenerator:
     
 class RawLabel:
     # Not sure about the algorithm, just learned from experience, includes the white frame
-    QRCODE_BOX_COUNT = 40
+    QRCODE_BOX_ROW_COUNT = 40
 
     def __init__(self, dimensions, uuidObj: uuid, 
             drawBorders: bool = False, margins  = None) -> None:
@@ -147,7 +149,7 @@ class SquareLabel(RawLabel):
         self.img = Image.new(str(1), (self.to_pix(x), self.to_pix(y)), color=1)
         draw = ImageDraw.Draw(self.img)
         
-        box_size = math.floor(self.to_pix(0.8 * x) / RawLabel.QRCODE_BOX_COUNT)
+        box_size = math.floor(self.to_pix(0.8 * x) / RawLabel.QRCODE_BOX_ROW_COUNT)
         qrimg = qrcode.make('c0h.de/' + str(uuidObj) + '?c=' + imhCode, box_size=box_size)
 
         self.img.paste(qrimg, (self.to_pix(self._margins[0]), self.to_pix(self._margins[1])))
