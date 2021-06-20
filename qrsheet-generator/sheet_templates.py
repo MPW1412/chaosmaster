@@ -1,5 +1,5 @@
 SHEET_DIMENSIONS = { 
-    '100DINA4_BOEGEN_vielzweck_etiketten': {
+    '100DINA4_BOEGEN_vielzweck_etiketten_20x20mm': {
         'EAN': '4042318015549',
         'article-number': '65020207',
         'manufacteurer': 'endihaft',
@@ -17,7 +17,9 @@ SHEET_DIMENSIONS = {
             'columns': 9,
             'row_distance': 0,
             'column_distance': 0
-        }
+        },
+        'recommended_label_type': 'SquareLabel'
+        
     },
     'topStick_8715_Universal_Etiketten_DINA4_105x48mm': {
         'EAN': '4023145087152 ',
@@ -38,6 +40,6 @@ SHEET_DIMENSIONS = {
             'row_distance': 0,
             'column_distance': 0
         },
-        'big_format': True
+        'recommended_label_type': 'WideLabel'
     }
 }
