@@ -255,7 +255,7 @@ if __name__ == "__main__":
             count = int(count)
 
         labelObj = WideLabel(SHEET_DIMENSIONS['topStick_8715_Universal_Etiketten_DINA4_105x48mm']['dimensions'],
-                uuid.uuid4(), iMH(), title, subtitle, 'N', 'links oben oder doch wo ganz an- ders',
+                uuid.uuid4(), iMH(), title, subtitle,
                 drawBorders=args.print_borders, margins = [label_left_margin, label_top_margin, label_left_margin, label_top_margin])
         qrsg.insert_label(labelObj.img, repeat=count)
     
