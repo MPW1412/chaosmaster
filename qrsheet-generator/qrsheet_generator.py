@@ -56,10 +56,15 @@ class QrSheetGenerator:
             round((self.__sheetDimensions['sheet_margin_top']
                     + self.__position_rows * self.__sheetDimensions['label_height']) * self.__pixel_per_mm))
     
-    def insert_label(self, ImgObj: Image, repeat: int = 1):
+    def insert_label(self, imgObj: Image, repeat: int = 1):
         for j in range(0, repeat):
             pos = self.__next_position_in_pixel()
-            self.__sheets[-1].paste(ImgObj, pos)
+#            if self.__position_columns == self.__sheetDimensions['columns'] - 1:
+            if self.__position_columns == 0:
+                imgObj_rotated = imgObj.copy().rotate(180)
+                self.__sheets[-1].paste(imgObj_rotated, pos)
+            else: 
+                self.__sheets[-1].paste(imgObj, pos)
             
     def save_pages_as_pdf(self):
         del_names = ""
@@ -127,7 +132,7 @@ class WideLabel:
         y = self.__dimensions['label_height']
         self.img = Image.new(str(1), (self.to_pix(x), self.to_pix(y)), color=1)
         draw = ImageDraw.Draw(self.img)
-        x_first_line = round(self.__margins[0] + (x - self.__margins[0] - self.__margins[2])*0.15)
+        x_first_line = round(self.__margins[0] + (x - self.__margins[0] - self.__margins[2])*0.08)
         qrimg = qrcode.make('c0h.de/' + str(uuidObj) + '?c=' + imhCode, box_size=20)
 
         first_line_coords = [ self.to_pix(z) for z in [x_first_line, self.__margins[1], x_first_line, y - self.__margins[1]]]
@@ -152,7 +157,8 @@ class WideLabel:
         draw.text((x_font, 4 * self.to_pix(0.01 * y) + qrimg.size[1] + 2 * font_height), 'IMH: ' + imhCode, font = fontObj)
 
         if navigationArrow is not None:
-            max_font_width = first_line_coords[0] - 2 * self.to_pix(self.__margins[0])
+            #max_font_width = first_line_coords[0] - 2 * self.to_pix(self.__margins[0])
+            max_font_width = first_line_coords[0] - 2 * self.to_pix(0.01 * y)
             font_size = 350
             fontObj = ImageFont.truetype('/usr/share/fonts/truetype/noto/NotoSansSymbols2-Regular.ttf', font_size, encoding = 'utf-8')
             while (fontObj.getsize(WideLabel.ORIENTATION_ARROWS[navigationArrow])[0] > max_font_width):
@@ -177,14 +183,14 @@ class WideLabel:
 
         x_font = second_line_coords[0] + 2 + 3 * self.to_pix(0.01 * y) 
         fontObj = ImageFont.truetype('/usr/share/fonts/truetype/freefont/FreeSans.ttf', 150, encoding = 'utf-8')
-        description_lines = WideLabel.wrap_text(description, self.to_pix(x)-second_line_coords[0]-self.to_pix(0.06 * y), fontObj)
+        description_lines = WideLabel.wrap_text(description, self.to_pix(x) - second_line_coords[0] - self.to_pix(0.03 * y) - self.to_pix(self.__margins[0]), fontObj)
         height_counter = self.to_pix(self.__margins[1] + 0.01*y)
         for line in description_lines:
             draw.text((x_font, height_counter), line, font = fontObj)
             w, h = fontObj.getsize(line)
             height_counter += h + 0.02*y
         fontObj = ImageFont.truetype('/usr/share/fonts/truetype/freefont/FreeSans.ttf', 75, encoding = 'utf-8')
-        secondary_description_lines = WideLabel.wrap_text(secondary_description, self.to_pix(x)-second_line_coords[0]-self.to_pix(0.06 * y), fontObj)
+        secondary_description_lines = WideLabel.wrap_text(secondary_description, self.to_pix(x) - second_line_coords[0] - self.to_pix(0.03 * y) - self.to_pix(self.__margins[0]), fontObj)
         height_counter += 0.02*y
         for line in secondary_description_lines:
             draw.text((x_font, height_counter), line, font = fontObj)
@@ -249,7 +255,7 @@ if __name__ == "__main__":
             count = int(count)
 
         labelObj = WideLabel(SHEET_DIMENSIONS['topStick_8715_Universal_Etiketten_DINA4_105x48mm']['dimensions'],
-                uuid.uuid4(), iMH(), title, subtitle, 'N', 'links oben oder doch wo ganz anders',
+                uuid.uuid4(), iMH(), title, subtitle, 'N', 'links oben oder doch wo ganz an- ders',
                 drawBorders=args.print_borders, margins = [label_left_margin, label_top_margin, label_left_margin, label_top_margin])
         qrsg.insert_label(labelObj.img, repeat=count)
     
