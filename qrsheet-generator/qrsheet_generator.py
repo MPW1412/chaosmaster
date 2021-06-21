@@ -306,7 +306,15 @@ if __name__ == "__main__":
     label_constructor = globals()[SHEET_DIMENSIONS[template_name]['recommended_label_type']]
 
     for label in args.label:
-        title, subtitle, count = label.split(';')
+        labelArgs = label.split(';')
+        title, subtitle, count = labelArgs[0:3]
+        if len(labelArgs) == 5:
+            direction = labelArgs[3]
+            directionDescription = labelArgs[4]
+        else:
+            direction = None
+            directionDescription = None
+            
         
         if count is None or count == "":
             count = 1
@@ -315,7 +323,8 @@ if __name__ == "__main__":
 
         labelObj = label_constructor(SHEET_DIMENSIONS[template_name]['dimensions'],
                 uuid.uuid4(), iMH(), title, subtitle,
-                drawBorders=args.print_borders, margins = [label_left_margin, label_top_margin, label_left_margin, label_top_margin])
+                drawBorders=args.print_borders, margins = [label_left_margin, label_top_margin, label_left_margin, label_top_margin],
+                navigationArrow = direction, navigationText = directionDescription)
         qrsg.insert_label(labelObj.img, repeat=count)
     
     if (args.fill_one_sheet == True):
