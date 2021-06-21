@@ -132,3 +132,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+qrsheet-generator/print-labels.pdf
+qrsheet-generator/settings.py
+settings.py

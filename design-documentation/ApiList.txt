@@ -2,19 +2,25 @@
 1. STORED OBJECTS URL
 	a. Create store object (POST)
 		-http://127.0.0.1:8000/stored-objects/
-	b. Get all store objects (GET)
+	b. Get all store objects (GET) (mit Filter)
 		-http://127.0.0.1:8000/stored-objects/
 	c. Get particular store object by uuid (GET)
 		-http://127.0.0.1:8000/stored-objects/221a10b5-bcfe-4626-b261-3c6a4fb6f432/
 	d. Update particular store object by uuid (PUT)
 		-http://127.0.0.1:8000/stored-objects/221a10b5-bcfe-4626-b261-3c6a4fb6f432/
-	e. Delete particular store object by uuid (DELETE)
+	e. Delete particular store object by uuid (DELETE) / mark deleted
 		-http://127.0.0.1:8000/stored-objects/221a10b5-bcfe-4626-b261-3c6a4fb6f432/
 
+standardisised object
+ - create
+ - get
+ - 
+
+
 2. IMAGES URL
-	a. Add image in particular store object (POST)
+	a. Add image in particular store object (POST) and type
 		-http://127.0.0.1:8000/images/318a3c78e2bd4c4091bff49c45cd6b9c/
-	b. Get all images of particular store object (POST)
+	b. Get all images of particular store object (POST) (of type)
 		-http://127.0.0.1:8000/images/318a3c78e2bd4c4091bff49c45cd6b9c/
 	c. Get particular image by id (GET)
 		-http://127.0.0.1:8000/images/change/6/
