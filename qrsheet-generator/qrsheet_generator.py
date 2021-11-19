@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
 from settings import PRINTERS
+from settings import DEFAULT_PAPER
 import qrcode
 import uuid
 from PIL import Image, ImageDraw, ImageFont
@@ -290,6 +291,9 @@ if __name__ == "__main__":
     parser.add_argument('--fill-one-sheet', '-fos', action="store_true", help="Create one sheet of random codes for quick usage")
     parser.add_argument('--paper', '-p', type=str, help='Set paper template, partial but unambiguous string suffices')
     args = parser.parse_args()
+    if args.paper is None:
+        args.paper = DEFAULT_PAPER
+    
     
     for paper_template in list(SHEET_DIMENSIONS.keys()):
         if args.paper in paper_template:
