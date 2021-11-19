@@ -13,7 +13,7 @@ import math
 import sys
 
 class QrSheetGenerator:
-    def __init__(self, sheetTemplate, offsetRows = 0, offsetColumns = 0, ppi = 600, margins = None):
+    def __init__(self, sheetTemplate, offsetRows = 0, offsetColumns = 0, ppi = 600, margins = None, skipBottom = 0):
         if sheetTemplate not in SHEET_DIMENSIONS:
             raise Exception('Unknown Sheet Configuration')
         self.__sheetTemplateName = sheetTemplate
@@ -27,7 +27,7 @@ class QrSheetGenerator:
         else:
             self._margins = [0, 0, 0, 0]
             
-        self.pos_available = self.__sheetDimensions['rows'] * self.__sheetDimensions['columns']
+        self.pos_available = self.__sheetDimensions['rows'] * self.__sheetDimensions['columns'] - skipBottom
         if offsetRows > 0:
             self.pos_available -= offsetRows * self.__sheetDimensions['columns']
         if offsetColumns > 0:
@@ -47,6 +47,8 @@ class QrSheetGenerator:
 
     def __next_position_in_pixel(self):
         self.pos_available -= 1
+        if self.pos_available == -1:
+            self.__newPage()
         self.position_columns += 1
         if self.position_columns == self.__sheetDimensions['columns']:
             self.position_columns = 0
@@ -283,6 +285,7 @@ if __name__ == "__main__":
             help='One Label per argument, subarguments semicolon separated: title; subtitle; count')
     parser.add_argument('--offsetRows', '-oR', type=int, help='Offset count rows', default=0)
     parser.add_argument('--offsetColumns', '-oC', type=int, help='Offset count columns', default=0)
+    parser.add_argument('--skip-bottom', '-sB', type=int, help='skip last n spots on first page', default=0)
     parser.add_argument('--print-borders', action="store_true", help="Print borders around labels, for testing only")
     parser.add_argument('--fill-one-sheet', '-fos', action="store_true", help="Create one sheet of random codes for quick usage")
     parser.add_argument('--paper', '-p', type=str, help='Set paper template, partial but unambiguous string suffices')
@@ -299,7 +302,7 @@ if __name__ == "__main__":
     margins = PRINTERS[list(PRINTERS.keys())[0]]['margins']
     
     qrsg = QrSheetGenerator(template_name,
-            offsetRows = args.offsetRows, offsetColumns = args.offsetColumns, margins = margins)
+            offsetRows = args.offsetRows, offsetColumns = args.offsetColumns, margins = margins, skipBottom = args.skip_bottom)
     label_left_margin = qrsg.get_left_margin_complying_with_printer_limitations_in_mm()
     label_top_margin = qrsg.get_top_margin_complying_with_printer_limitations_in_mm()
     
