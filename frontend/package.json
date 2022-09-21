@@ -15,7 +15,7 @@
     "vue-qrcode-reader": "^2.3.2",
     "vue-router": "^3.2.0",
     "vue-webcam": "git+https://github.com/smronju/vue-webcam.git",
-    "vuetify": "^2.2.32"
+    "vuetify": "^2.6.10"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^4.4.0",
